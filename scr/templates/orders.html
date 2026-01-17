@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}Мои заказы | SoftKey{% endblock %}
+
+{% block content %}
+<div class="bg-gray-0 min-h-screen">
+    <div class="w-[1196px] mx-auto pt-8 pb-20">
+
+        <nav class="flex items-center gap-2 text-sm text-gray-400 mb-8">
+            <a href="/" class="hover:text-primary transition">Главная</a> /
+            <span class="text-gray-900 font-medium">Мои заказы</span>
+        </nav>
+
+        <div class="space-y-6">
+            {% if orders %}
+            {% for order in orders %}
+            <div
+                class="bg-white border border-gray-100 rounded-[16px] shadow-sm overflow-hidden transition-all duration-300">
+                <button onclick="toggleOrder('{{ order.ID_Заказа }}')"
+                    class="w-full p-8 flex items-center justify-between hover:bg-gray-50/50 transition text-left group">
+                    <div class="flex items-center gap-12">
+                        <div>
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="text-xl font-bold text-primary">Заказ #{{ order.ID_Заказа }}</h3>
+                                {% if order.Статус == 'Активен' %}
+                                <span
+                                    class="px-3 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <i class="ri-checkbox-circle-fill"></i> {{ order.Статус }}
+                                </span>
+                                {% elif order.Статус == 'Выполнен' %}
+                                <span
+                                    class="px-3 py-1 bg-green-50 text-green-500 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <i class="ri-checkbox-circle-fill"></i> {{ order.Статус }}
+                                </span>
+                                {% else %}
+                                <span
+                                    class="px-3 py-1 bg-orange-50 text-orange-500 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <i class="ri-time-fill"></i> {{ order.Статус }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-gray-400">
+                                <i class="ri-calendar-line"></i> {{ order.Дата_заказа.strftime('%d марта %Y • %H:%M') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-10">
+                        <div class="text-right">
+                            <span class="text-2xl font-black text-gray-900">{{ order.Итоговая_сумма|round|int }}
+                                ₽</span>
+                        </div>
+                        <i id="icon-{{ order.ID_Заказа }}"
+                            class="ri-arrow-down-s-line text-2xl text-primary transition-transform duration-300"></i>
+                    </div>
+                </button>
+
+                <div id="content-{{ order.ID_Заказа }}" class="hidden border-t border-gray-50 bg-white p-8">
+                    <div class="mb-6 flex items-center gap-2 text-gray-900 font-bold">
+                        <i class="ri-key-2-line"></i>
+                        <h4>Лицензии в заказе</h4>
+                    </div>
+
+                    <div class="w-full">
+                        <div
+                            class="grid grid-cols-[1.5fr_1fr_100px_1fr_1.5fr] px-4 py-3 bg-gray-50 rounded-t-lg text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                            <span>Продукт</span>
+                            <span class="text-center">Лицензионный ключ</span>
+                            <span class="text-center">Статус</span>
+                            <span class="text-center">Срок действия</span>
+                            <span class="text-right">Действия</span>
+                        </div>
+
+                        <div class="divide-y divide-gray-50 border border-gray-50 border-t-0 rounded-b-lg">
+                            {% for item in order.products_list %}
+                            <div
+                                class="grid grid-cols-[1.5fr_1fr_100px_1fr_1.5fr] items-center px-4 py-6 hover:bg-gray-50/30 transition">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300">
+                                        <i class="ri-image-2-line text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900 leading-tight">{{ item.Название }}</p>
+                                        <p class="text-[11px] text-gray-400">Бизнес • 2 года обновлений</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col gap-2 items-center">
+                                    {% if item['keys'] %}
+                                    {% for key in item['keys'] %}
+                                    <div
+                                        class="flex items-center gap-2 bg-white px-3 py-1.5 rounded border border-dashed border-blue-200 font-mono text-[11px] text-primary shadow-sm w-fit">
+                                        <span>{{ key }}</span>
+                                        <button onclick="copyToClipboard(this)"
+                                            class="copy-btn text-gray-300 hover:text-primary transition relative"
+                                            data-key="{{ key }}">
+                                            <i class="ri-file-copy-line"></i>
+                                            <span
+                                                class="copy-tooltip absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 pointer-events-none transition-opacity whitespace-nowrap">
+                                                Скопировано!
+                                            </span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                    {% else %}
+                                    <span class="text-[10px] text-gray-400 italic">Генерация ключа...</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex justify-center">
+                                    <span
+                                        class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold flex items-center gap-1">
+                                        <i class="ri-checkbox-circle-fill"></i> АКТИВНА
+                                    </span>
+                                </div>
+
+                                <div class="text-center">
+                                    <p class="text-[10px] text-gray-400 uppercase font-bold">Бессрочно</p>
+                                    <p class="text-[10px] text-gray-300 leading-tight">Retail License</p>
+                                </div>
+
+                                <div class="flex justify-end gap-2">
+                                    <button
+                                        class="px-4 py-2 bg-blue-50 text-primary rounded-lg text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1">
+                                        <i class="ri-download-cloud-line"></i> Скачать
+                                    </button>
+                                    <button
+                                        class="px-4 py-2 bg-green-50 text-green-600 rounded-lg text-xs font-bold hover:bg-green-100 transition flex items-center gap-1">
+                                        <i class="ri-flashlight-line"></i> Инструкция
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="bg-white border border-gray-100 rounded-[16px] p-24 text-center shadow-sm">
+                <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="ri-shopping-bag-line text-[40px] text-gray-200"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">У вас пока нет заказов</h3>
+                <a href="/"
+                    class="inline-block bg-primary text-white px-10 py-4 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-100">
+                    В КАТАЛОГ
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleOrder(id) {
+        const content = document.getElementById('content-' + id);
+        const icon = document.getElementById('icon-' + id);
+
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            content.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // Функция для копирования ключа в буфер обмена
+    function copyToClipboard(button) {
+        const key = button.getAttribute('data-key');
+        const tooltip = button.querySelector('.copy-tooltip');
+
+        // Используем современный Clipboard API
+        navigator.clipboard.writeText(key).then(() => {
+            // Показываем tooltip
+            tooltip.style.opacity = '1';
+            tooltip.textContent = 'Скопировано!';
+
+            // Меняем иконку на успешное копирование
+            const icon = button.querySelector('i');
+            icon.className = 'ri-check-line';
+            button.classList.remove('text-gray-300', 'hover:text-primary');
+            button.classList.add('text-green-500');
+
+            // Возвращаем обратно через 2 секунды
+            setTimeout(() => {
+                tooltip.style.opacity = '0';
+                icon.className = 'ri-file-copy-line';
+                button.classList.remove('text-green-500');
+                button.classList.add('text-gray-300', 'hover:text-primary');
+            }, 2000);
+
+        }).catch(err => {
+            // Fallback для старых браузеров
+            console.error('Ошибка копирования: ', err);
+
+            // Показываем ошибку
+            tooltip.style.opacity = '1';
+            tooltip.textContent = 'Ошибка!';
+            tooltip.classList.add('bg-red-500');
+
+            setTimeout(() => {
+                tooltip.style.opacity = '0';
+                tooltip.classList.remove('bg-red-500');
+            }, 2000);
+        });
+    }
+
+</script>
+{% endblock %}

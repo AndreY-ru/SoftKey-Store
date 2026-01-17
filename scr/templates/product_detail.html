@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ product.Название }} | SoftKey{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center">
+    <div class="w-[1196px] mx-auto pt-[48px] pb-20">
+        <nav class="text-sm text-gray-400 mb-8">
+            <a href="/" class="hover:text-primary transition">Главная</a> /
+            <span class="text-gray-900 font-medium">{{ product.Название }}</span>
+        </nav>
+
+        <div class="w-[1196px] flex gap-[20px] mb-[64px]">
+            <div
+                class="w-[345px] h-[345px] bg-white rounded-[8px] flex items-center justify-center border border-blue-100 overflow-hidden">
+                {% if product.Изображение %}
+                <img src="{{ url_for('static', filename='images/' + product.Изображение) }}"
+                    alt="{{ product.Название }}" class="w-full h-full object-contain">
+                {% else %}
+                <i class="ri-shield-flash-line text-[120px] text-primary opacity-20"></i>
+                {% endif %}
+            </div>
+            <div class="w-[831px] min-h-[345px] flex flex-col">
+                <div class="mb-6">
+                    <span class="text-description font-bold text-primary uppercase tracking-widest">{{
+                        product.Название_категории }}</span>
+                    <h1 class="text-heading font-bold text-gray-900 leading-tight">{{ product.Название }}</h1>
+                </div>
+
+                <div class="flex-grow">
+                    <h3 class="text-base font-bold text-gray-400 uppercase mb-2">Описание продукта</h3>
+                    <p class="text-base text-gray-700 leading-relaxed" style="white-space: pre-line;">
+                        {{ product.Описание }}
+                    </p>
+                </div>
+
+                <div class="mt-6 flex gap-8">
+                    <div class="flex items-center gap-2 text-secondary">
+                        <i class="ri-flashlight-line text-subheading"></i>
+                        <span class="text-base font-bold uppercase">Мгновенная доставка</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-500">
+                        <i class="ri-shield-check-line text-subheading"></i>
+                        <span class="text-base font-bold uppercase">Официальная лицензия</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="flex gap-[22px] items-start">
+
+            <div class="w-[710px]">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Варианты лицензии</h2>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div
+                        class="flex items-center justify-between p-6 border border-gray-100 rounded-[16px] bg-white shadow-sm hover:border-primary hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-6">
+                            <div
+                                class="w-16 h-16 bg-primary text-white rounded-xl flex items-center justify-center text-3xl shadow-lg shadow-blue-100 group-hover:scale-105 transition-transform">
+                                <i class="ri-global-line"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold text-gray-900">{{ product.Название }}</h4>
+                                <p class="text-gray-500">Global Retail • Бессрочная активация</p>
+                                <div class="flex items-center gap-4 mt-2">
+                                    <span class="text-green-500 text-sm flex items-center gap-1 font-bold">
+                                        <i class="ri-checkbox-circle-fill"></i> В НАЛИЧИИ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-8">
+                            <div class="text-right">
+                                <span class="text-3xl font-bold text-gray-900">{{ product.Цена|round|int }} ₽</span>
+                            </div>
+                            <form action="/add_to_cart/{{ product.ID_Товара }}" method="POST">
+                                <button type="submit"
+                                    class="bg-gray-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-black transition flex items-center gap-3 shadow-lg shadow-gray-200">
+                                    <i class="ri-shopping-cart-2-line"></i>
+                                    В КОРЗИНУ
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 uppercase tracking-tight">Технические характеристики
+                    </h3>
+                    <div class="grid grid-cols-2 gap-x-12 gap-y-4 border-t border-gray-100 pt-6">
+                        <div class="flex justify-between border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">Тип лицензии:</span>
+                            <span class="font-medium">Retail</span>
+                        </div>
+                        <div class="flex justify-between border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">Срок действия:</span>
+                            <span class="font-medium">Бессрочно</span>
+                        </div>
+                        <div class="flex justify-between border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">Язык:</span>
+                            <span class="font-medium">Мультиязычный</span>
+                        </div>
+                        <div class="flex justify-between border-b border-gray-50 pb-2">
+                            <span class="text-gray-500">Регион:</span>
+                            <span class="font-medium">Global (Весь мир)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="w-[464px] space-y-4">
+                <div class="bg-blue-50 border border-blue-100 rounded-[20px] p-8">
+                    <h3 class="text-lg font-bold text-blue-900 mb-4">Почему покупают у нас?</h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-4">
+                            <i class="ri-shield-check-fill text-primary text-xl"></i>
+                            <p class="text-sm text-blue-800"><span class="font-bold">100% Гарантия.</span> Все ключи
+                                проходят валидацию в официальных сервисах.</p>
+                        </li>
+                        <li class="flex gap-4">
+                            <i class="ri-customer-service-2-fill text-primary text-xl"></i>
+                            <p class="text-sm text-blue-800"><span class="font-bold">Поддержка 24/7.</span> Поможем с
+                                активацией в любое время дня и ночи.</p>
+                        </li>
+                        <li class="flex gap-4">
+                            <i class="ri-mail-send-fill text-primary text-xl"></i>
+                            <p class="text-sm text-blue-800"><span class="font-bold">Доставка за 1 минуту.</span> Ключ
+                                придет на почту сразу после оплаты.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="border border-gray-100 rounded-[20px] p-8 flex items-center gap-6">
+                    <div class="text-4xl text-gray-300"><i class="ri-visa-line"></i></div>
+                    <div class="text-4xl text-gray-300"><i class="ri-mastercard-line"></i></div>
+                    <div class="text-4xl text-gray-300"><i class="ri-mir-line"></i></div>
+                    <p class="text-xs text-gray-400 leading-tight">Безопасная оплата через защищенные шлюзы</p>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

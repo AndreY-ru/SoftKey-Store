@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+{% block title %}Личный кабинет | SoftKey{% endblock %}
+
+{% block content %}
+<div class="flex justify-center pt-[48px] pb-20">
+    <div class="w-[1196px] flex gap-[22px]">
+
+        <aside class="w-[466px]  flex flex-col gap-6">
+            <div class="bg-white border border-gray-100 rounded-[12px] p-8 shadow-sm min-h-[578px]">
+                <div class="flex items-center gap-4 mb-6">
+                    <div
+                        class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center text-[32px]">
+                        <i class="ri-user-smile-line"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-subheading font-bold text-gray-900">{{ user.Имя }} {{ user.Фамилия }}</h2>
+                        <p class="text-description text-gray-500 uppercase tracking-wider">ID: {{ user.ID_Пользователя
+                            }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 border-t border-gray-50 pt-6 mb-8">
+                    <div class="flex justify-between text-base">
+                        <span class="text-gray-500">Логин:</span>
+                        <span class="font-medium">{{ user.Логин }}</span>
+                    </div>
+                    <div class="flex justify-between text-base">
+                        <span class="text-gray-500">Заказов:</span>
+                        <span class="font-medium text-primary">{{ orders|length }}</span>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-2">
+                    <button onclick="switchTab('personal')" id="btn-personal"
+                        class="tab-btn active-tab flex items-center gap-3 px-4 py-3 rounded-lg text-left transition font-bold hover:bg-blue-400 hover:text-gray-50">
+                        <i class="ri-user-line"></i> Личные данные
+                    </button>
+                    <button onclick="switchTab('security')" id="btn-security"
+                        class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg text-left transition font-bold text-gray-500 hover:bg-blue-400 hover:text-gray-50">
+                        <i class="ri-shield-keyhole-line"></i> Безопасность
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="w-[708px]">
+
+            <section id="tab-personal" class="bg-white border border-gray-100 rounded-[12px] p-8 shadow-sm min-h-[578px]">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-subheading font-bold text-gray-900">Личные данные</h3>
+                    <a href="/logout" class="flex items-center gap-2 text-red-500 font-bold hover:underline">
+                        <i class="ri-logout-box-r-line"></i> ВЫЙТИ
+                    </a>
+                </div>
+
+                <form id="profile-form" action="/update_profile" method="POST" class="grid grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Фамилия</label>
+                        <input type="text" name="last_name" value="{{ user.Фамилия }}" class="form-input"
+                            placeholder="Иванов" oninput="validateFIO(this)">
+                        <div class="text-description text-gray-400">Только буквы и дефисы</div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Имя</label>
+                        <input type="text" name="first_name" value="{{ user.Имя }}" class="form-input"
+                            placeholder="Иван" oninput="validateFIO(this)">
+                        <div class="text-description text-gray-400">Только буквы и дефисы</div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Отчество</label>
+                        <input type="text" name="middle_name" value="{{ user.Отчество or '' }}" placeholder="Иванович"
+                            class="form-input" oninput="validateFIO(this)">
+                        <div class="text-description text-gray-400">Только буквы и дефисы</div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Логин</label>
+                        <input type="text" name="login" value="{{ user.Логин }}" class="form-input bg-gray-50" readonly>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Телефон</label>
+                        <input type="tel" name="phone" value="{{ formatPhone(user.Телефон or '') }}"
+                            placeholder="+7(900)-000-00-00" class="form-input" oninput="formatPhoneInput(this)"
+                            onblur="validatePhone(this)">
+                        <div class="text-description text-gray-400">Формат: +7(XXX)-XXX-XX-XX</div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-description font-bold text-gray-400 uppercase">Дата рождения</label>
+                        <input type="date" name="birth_date" value="{{ user.Дата_рождения }}" class="form-input"
+                            onblur="validateBirthDate(this)" max="{{ max_date }}">
+                    </div>
+
+                    <div class="col-span-2 pt-4">
+                        <button type="submit" onclick="return validateForm()"
+                            class="border-2 border-gray-900 text-gray-900 px-6 py-2 rounded-md font-bold hover:bg-gray-900 hover:text-white">
+                            СОХРАНИТЬ ИЗМЕНЕНИЯ
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- В секции безопасности замените форму смены пароля на эту: -->
+            <section id="tab-security"
+                class="hidden bg-white border border-gray-100 rounded-[12px] p-8 shadow-sm min-h-[578px]">
+                <h3 class="text-subheading font-bold text-gray-900 pb-[20px]">Смена пароля</h3>
+
+                <div class="pb-[20px] border-b border-gray-50">
+                    <form id="password-form" action="/change_password" method="POST"
+                        class="max-w-[400px] flex flex-col gap-1">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-description font-bold text-gray-400 uppercase">Текущий пароль</label>
+                            <input type="password" name="current_password" placeholder="Введите текущий пароль" class="form-input"
+                                onblur="validateCurrentPassword(this)" required>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="text-description font-bold text-gray-400 uppercase">Новый пароль</label>
+                            <input type="password" name="new_password" placeholder="Минимум 8 символов" class="form-input"
+                                onblur="validatePasswordStrength(this)" required>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label class="text-description font-bold text-gray-400 uppercase">Подтверждение
+                                пароля</label>
+                            <input type="password" name="confirm_password" placeholder="Повторите новый парль" class="form-input"
+                                onblur="validatePasswordMatch(this)" required>
+                        </div>
+
+                        <button type="submit" onclick="return validatePasswordForm()"
+                            class="border-2 border-gray-900 text-gray-900 px-6 py-2 rounded-md font-bold hover:bg-gray-900 hover:text-white transition w-fit mt-4">
+                            ОБНОВИТЬ ПАРОЛЬ
+                        </button>
+                    </form>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-red-50 rounded-xl border border-red-100">
+                    <div>
+                        <h4 class="text-base font-bold text-red-700">Удаление аккаунта</h4>
+                        <p class="text-description text-red-600/70">Это действие нельзя отменить. Все данные будут
+                            стерты.</p>
+                    </div>
+                    <button onclick="confirmDelete()"
+                        class="bg-red-600 text-white px-6 py-2 rounded-md font-bold hover:bg-red-700 transition">
+                        УДАЛИТЬ
+                    </button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<style>
+    .form-input {
+        height: 48px;
+        padding: 0 16px;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+        border-color: #3B82F6;
+    }
+
+    .form-input.error {
+        border-color: #EF4444;
+        background-color: #FEF2F2;
+    }
+
+    .active-tab {
+        background-color: #3B82F6;
+        color: white !important;
+    }
+
+    .error-message {
+        color: #EF4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+    }
+</style>
+
+<script>
+    // Установка максимальной даты (сегодня) для даты рождения
+    const today = new Date();
+    const maxDate = today.toISOString().split('T')[0];
+    document.querySelector('input[name="birth_date"]').max = maxDate;
+
+    // Функция для форматирования телефона из БД
+    function formatPhone(phone) {
+        if (!phone) return '';
+        // Убираем все нецифровые символы
+        const cleaned = phone.replace(/\D/g, '');
+        // Форматируем в +7(XXX)-XXX-XX-XX
+        if (cleaned.length === 11 && cleaned.startsWith('7')) {
+            return `+7(${cleaned.substring(1, 4)})-${cleaned.substring(4, 7)}-${cleaned.substring(7, 9)}-${cleaned.substring(9, 11)}`;
+        } else if (cleaned.length === 10) {
+            return `+7(${cleaned.substring(0, 3)})-${cleaned.substring(3, 6)}-${cleaned.substring(6, 8)}-${cleaned.substring(8, 10)}`;
+        }
+        return phone;
+    }
+
+    // Автоматическое форматирование телефона при вводе
+    function formatPhoneInput(input) {
+        let value = input.value.replace(/\D/g, '');
+
+        if (value.startsWith('8')) {
+            value = '7' + value.substring(1);
+        }
+
+        if (value.length > 0) {
+            // Если начинается не с +7 или 7, добавляем +7
+            if (!value.startsWith('7')) {
+                value = '7' + value;
+            }
+
+            // Ограничиваем длину до 11 цифр (7 + 10)
+            value = value.substring(0, 11);
+
+            // Форматируем
+            let formatted = '+7';
+            if (value.length > 1) {
+                formatted += '(' + value.substring(1, 4);
+            }
+            if (value.length >= 4) {
+                formatted += ')-' + value.substring(4, 7);
+            }
+            if (value.length >= 7) {
+                formatted += '-' + value.substring(7, 9);
+            }
+            if (value.length >= 9) {
+                formatted += '-' + value.substring(9, 11);
+            }
+
+            input.value = formatted;
+        }
+
+        clearError(input);
+    }
+
+    // Валидация телефона
+    function validatePhone(input) {
+        const value = input.value.replace(/\D/g, '');
+        const phonePattern = /^7\d{10}$/;
+
+        if (!value) {
+            showError(input, 'Телефон обязателен для заполнения');
+            return false;
+        }
+
+        if (!phonePattern.test(value)) {
+            showError(input, 'Введите корректный номер телефона (10 цифр после +7)');
+            return false;
+        }
+
+        clearError(input);
+        return true;
+    }
+
+    // Валидация ФИО (без цифр)
+    function validateFIO(input) {
+        const value = input.value.trim();
+        const fioPattern = /^[А-Яа-яЁёA-Za-z\s\-]+$/;
+
+        // Очищаем от цифр
+        if (/\d/.test(value)) {
+            input.value = value.replace(/\d/g, '');
+        }
+
+        if (!value) {
+            clearError(input);
+            return true;
+        }
+
+        if (!fioPattern.test(value)) {
+            showError(input, 'Можно использовать только буквы, пробелы и дефисы');
+            return false;
+        }
+
+        // Проверка на минимальную длину
+        if (value.length < 2) {
+            showError(input, 'Минимум 2 символа');
+            return false;
+        }
+
+        // Проверка на первую заглавную букву
+        const firstChar = value.charAt(0);
+        if (!/[А-ЯA-ZЁ]/.test(firstChar)) {
+            showError(input, 'Первая буква должна быть заглавной');
+            return false;
+        }
+
+        clearError(input);
+        return true;
+    }
+
+    // Валидация даты рождения
+    function validateBirthDate(input) {
+        const value = input.value;
+        if (!value) {
+            clearError(input);
+            return true;
+        }
+
+        const birthDate = new Date(value);
+        const today = new Date();
+
+        // Проверка что дата не в будущем
+        if (birthDate > today) {
+            showError(input, 'Дата рождения не может быть в будущем');
+            return false;
+        }
+
+        // Проверка что возраст не менее 14 лет
+        const minAgeDate = new Date();
+        minAgeDate.setFullYear(today.getFullYear() - 14);
+        if (birthDate > minAgeDate) {
+            showError(input, 'Вам должно быть не менее 14 лет');
+            return false;
+        }
+
+        // Проверка что возраст не более 120 лет
+        const maxAgeDate = new Date();
+        maxAgeDate.setFullYear(today.getFullYear() - 120);
+        if (birthDate < maxAgeDate) {
+            showError(input, 'Проверьте правильность даты рождения');
+            return false;
+        }
+
+        clearError(input);
+        return true;
+    }
+
+    // Валидация пароля
+    function validatePassword(input) {
+        const value = input.value;
+
+        if (!value) {
+            showError(input, 'Пароль обязателен');
+            return false;
+        }
+
+        if (value.length < 6) {
+            showError(input, 'Пароль должен содержать минимум 6 символов');
+            return false;
+        }
+
+        clearError(input);
+        return true;
+    }
+
+    // Валидация всей формы профиля
+    function validateForm() {
+        const form = document.getElementById('profile-form');
+        let isValid = true;
+
+        // Проверяем ФИО
+        const lastName = form.querySelector('input[name="last_name"]');
+        const firstName = form.querySelector('input[name="first_name"]');
+
+        if (!validateFIO(lastName)) isValid = false;
+        if (!validateFIO(firstName)) isValid = false;
+
+        // Проверяем телефон
+        const phone = form.querySelector('input[name="phone"]');
+        if (!validatePhone(phone)) isValid = false;
+
+        // Проверяем дату рождения
+        const birthDate = form.querySelector('input[name="birth_date"]');
+        if (birthDate.value && !validateBirthDate(birthDate)) isValid = false;
+
+        return isValid;
+    }
+
+    // Валидация формы смены пароля
+    function validatePasswordForm() {
+        const form = document.getElementById('password-form');
+        const password = form.querySelector('input[name="new_password"]');
+        return validatePassword(password);
+    }
+
+    // Функции для работы с ошибками
+    function showError(field, message) {
+        clearError(field);
+        field.classList.add('error');
+
+        let errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        errorDiv.id = field.name + '-error';
+
+        field.parentNode.appendChild(errorDiv);
+        errorDiv.style.display = 'block';
+    }
+
+    function clearError(field) {
+        field.classList.remove('error');
+        const errorDiv = document.getElementById(field.name + '-error');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+
+    // Табы
+    function switchTab(tabName) {
+        // Скрываем все секции
+        document.getElementById('tab-personal').classList.add('hidden');
+        document.getElementById('tab-security').classList.add('hidden');
+
+        // Снимаем активный класс со всех кнопок
+        document.getElementById('btn-personal').classList.remove('active-tab', 'text-white');
+        document.getElementById('btn-personal').classList.add('text-gray-500');
+        document.getElementById('btn-security').classList.remove('active-tab', 'text-white');
+        document.getElementById('btn-security').classList.add('text-gray-500');
+
+        // Показываем нужную
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+        // Делаем кнопку активной
+        const activeBtn = document.getElementById('btn-' + tabName);
+        activeBtn.classList.add('active-tab', 'text-white');
+        activeBtn.classList.remove('text-gray-500');
+    }
+
+    function confirmDelete() {
+        if (confirm("Вы уверены? Все ваши лицензии будут аннулированы.")) {
+            window.location.href = "/delete_account";
+        }
+    }
+
+    // Автоматическая валидация при потере фокуса
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('profile-form');
+
+        ['last_name', 'first_name', 'middle_name', 'phone', 'birth_date'].forEach(fieldName => {
+            const field = form.querySelector(`input[name="${fieldName}"]`);
+            if (field) {
+                field.addEventListener('blur', function () {
+                    if (fieldName === 'phone') validatePhone(this);
+                    else if (fieldName === 'birth_date') validateBirthDate(this);
+                    else if (['last_name', 'first_name', 'middle_name'].includes(fieldName)) validateFIO(this);
+                });
+            }
+        });
+    });
+
+    // Валидация текущего пароля
+    function validateCurrentPassword(input) {
+        const value = input.value;
+        if (!value) {
+            showError(input, 'Введите текущий пароль');
+            return false;
+        }
+        clearError(input);
+        return true;
+    }
+
+    // Проверка сложности нового пароля
+    function validatePasswordStrength(input) {
+        const value = input.value;
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+        
+        if (!value) {
+            showError(input, 'Введите новый пароль');
+            return false;
+        }
+        
+        if (value.length < 8) {
+            showError(input, 'Пароль должен содержать минимум 8 символов');
+            return false;
+        }
+        
+        if (!passwordPattern.test(value)) {
+            showError(input, 'Пароль должен содержать буквы и цифры');
+            return false;
+        }
+        
+        // Проверка на совпадение с текущим паролем
+        const currentPassword = document.querySelector('input[name="current_password"]');
+        if (currentPassword && value === currentPassword.value) {
+            showError(input, 'Новый пароль должен отличаться от текущего');
+            return false;
+        }
+        
+        clearError(input);
+        return true;
+    }
+
+    // Проверка совпадения паролей
+    function validatePasswordMatch(input) {
+        const confirmValue = input.value;
+        const newPassword = document.querySelector('input[name="new_password"]').value;
+        
+        if (!confirmValue) {
+            showError(input, 'Подтвердите новый пароль');
+            return false;
+        }
+        
+        if (confirmValue !== newPassword) {
+            showError(input, 'Пароли не совпадают');
+            return false;
+        }
+        
+        clearError(input);
+        return true;
+    }
+
+    // Валидация всей формы смены пароля
+    function validatePasswordForm() {
+        const form = document.getElementById('password-form');
+        let isValid = true;
+        
+        // Проверяем все поля
+        const currentPass = form.querySelector('input[name="current_password"]');
+        const newPass = form.querySelector('input[name="new_password"]');
+        const confirmPass = form.querySelector('input[name="confirm_password"]');
+        
+        if (!validateCurrentPassword(currentPass)) isValid = false;
+        if (!validatePasswordStrength(newPass)) isValid = false;
+        if (!validatePasswordMatch(confirmPass)) isValid = false;
+        
+        return isValid;
+    }
+</script>
+{% endblock %}

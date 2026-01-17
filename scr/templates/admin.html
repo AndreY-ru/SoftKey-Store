@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block title %}Админ-панель | SoftKey{% endblock %}
+
+{% block content %}
+<div class="flex justify-center bg-gray-0 min-h-screen py-10">
+    <div class="w-[1196px]">
+
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-heading font-bold text-gray-900">Управление магазином</h1>
+                <p class="text-base text-gray-500">Добро пожаловать в панель администратора</p>
+            </div>
+            <button onclick="openModal('productModal')"
+                class="bg-primary text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-600 transition">
+                <i class="ri-add-circle-line"></i> ДОБАВИТЬ ТОВАР
+            </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-description font-bold text-gray-400 uppercase">Общая выручка</p>
+                <h3 class="text-subheading font-bold text-gray-900">{{ stats.revenue|round|int }} ₽</h3>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-description font-bold text-gray-400 uppercase">Всего заказов</p>
+                <h3 class="text-subheading font-bold text-gray-900">{{ stats.orders_count }}</h3>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-description font-bold text-gray-400 uppercase">Товаров в базе</p>
+                <h3 class="text-subheading font-bold text-gray-900">{{ stats.products_count }}</h3>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <p class="text-description font-bold text-gray-400 uppercase">Клиентов</p>
+                <h3 class="text-subheading font-bold text-gray-900">{{ stats.users_count }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="flex border-b border-gray-100">
+                <button onclick="switchTab('products')" id="tab-products-btn" class="admin-tab active">Товары</button>
+                <button onclick="switchTab('orders')" id="tab-orders-btn" class="admin-tab">Заказы</button>
+                <button onclick="switchTab('reports')" id="tab-reports-btn" class="admin-tab text-secondary">Аналитика и
+                    отчеты</button>
+            </div>
+
+            <div id="tab-reports" class="p-8 hidden bg-gray-50/30">
+                <div class="grid grid-cols-2 gap-8">
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <i class="ri-fire-line text-orange-500"></i> Популярные товары (ТОП-5)
+                        </h3>
+                        <div class="space-y-4">
+                            {% for item in reports.top_products %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-base text-gray-700 truncate w-48">{{ item.Название }}</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="bg-primary h-full"
+                                            style="width: {{ (item.total_qty / reports.top_products[0].total_qty * 100)|int }}%">
+                                        </div>
+                                    </div>
+                                    <span class="font-bold text-gray-900">{{ item.total_qty }} шт.</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-base font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <i class="ri-pie-chart-line text-primary"></i> Выручка по категориям
+                        </h3>
+                        <div class="space-y-4">
+                            {% for cat in reports.category_revenue %}
+                            <div class="flex justify-between items-center">
+                                <span class="text-base font-medium text-gray-600">{{ cat.Название_категории }}</span>
+                                <span class="text-base font-bold text-secondary">{{ cat.total_revenue|round|int }}
+                                    ₽</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <h3 class="text-base font-bold text-gray-900 mb-6">Динамика продаж</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-description text-gray-400 uppercase border-b border-gray-50">
+                                        <th class="pb-3 text-left">Дата</th>
+                                        <th class="pb-3 text-center">Заказов</th>
+                                        <th class="pb-3 text-right">Сумма за день</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
+                                    {% for day in reports.daily_sales %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-3 text-base text-gray-600">{{ day.day }}</td>
+                                        <td class="py-3 text-center font-bold">{{ day.order_count }}</td>
+                                        <td class="py-3 text-right font-bold text-gray-900">{{ day.daily_sum|round|int
+                                            }} ₽</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div
+                        class="col-span-2 bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-lg text-white">
+                        <h3 class="text-base font-bold mb-6 flex items-center gap-2">
+                            <i class="ri-vip-crown-line text-yellow-400"></i> Наши лучшие покупатели
+                        </h3>
+                        <div class="grid grid-cols-5 gap-4">
+                            {% for user in reports.vip_customers %}
+                            <div class="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+                                <p class="text-description uppercase font-bold opacity-60">{{ user.Логин.split('@')[0]
+                                    }}</p>
+                                <p class="text-base font-bold truncate">{{ user.Имя }} {{ user.Фамилия }}</p>
+                                <p class="text-subheading font-bold mt-2">{{ user.total_spent|round|int }} ₽</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="tab-products" class="p-6">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-description font-bold text-gray-400 uppercase border-b border-gray-50">
+                            <th class="pb-4 px-2">ID</th>
+                            <th class="pb-4">Название</th>
+                            <th class="pb-4">Категория</th>
+                            <th class="pb-4">Цена</th>
+                            <th class="pb-4 text-right">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for p in products %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-4 px-2 text-gray-400">#{{ p.ID_Товара }}</td>
+                            <td class="py-4 font-bold text-gray-900">{{ p.Название }}</td>
+                            <td class="py-4"><span
+                                    class="px-3 py-1 bg-blue-50 text-primary rounded-full text-[12px] font-bold">{{
+                                    p.Название_категории }}</span></td>
+                            <td class="py-4 font-bold">{{ p.Цена|round|int }} ₽</td>
+                            <td class="py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="openEditModal({{ p | tojson | forceescape }})"
+                                        class="p-2 text-gray-400 hover:text-primary transition">
+                                        <i class="ri-pencil-line text-lg"></i>
+                                    </button>
+
+                                    <a href="{{ url_for('delete_product', product_id=p.ID_Товара) }}"
+                                        onclick="return confirm('Вы уверены, что хотите удалить этот товар?')"
+                                        class="p-2 text-gray-400 hover:text-red-500 transition">
+                                        <i class="ri-delete-bin-line text-lg"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab-orders" class="p-6 hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-description font-bold text-gray-400 uppercase border-b border-gray-50">
+                            <th class="pb-4 px-2">ID</th>
+                            <th class="pb-4">Клиент</th>
+                            <th class="pb-4">Дата</th>
+                            <th class="pb-4">Сумма</th>
+                            <th class="pb-4">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for o in orders %}
+                        <tr>
+                            <td class="py-4 px-2">#{{ o.ID_Заказа }}</td>
+                            <td class="py-4 font-bold">{{ o.Имя }} {{ o.Фамилия }}</td>
+                            <td class="py-4 text-gray-500">{{ o.Дата_заказа.strftime('%d.%m.%Y %H:%M') }}</td>
+                            <td class="py-4 font-bold">{{ o.Итоговая_сумма|round|int }} ₽</td>
+                            <td class="py-4">
+                                <span
+                                    class="px-3 py-1 {% if o.Статус == 'Оплачен' %}bg-green-50 text-secondary{% else %}bg-orange-50 text-orange-500{% endif %} rounded-lg font-bold text-[12px]">
+                                    {{ o.Статус }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="editModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white w-[500px] rounded-2xl shadow-2xl p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-subheading font-bold text-gray-900">Редактировать товар</h2>
+            <button onclick="closeModal('editModal')" class="text-gray-400 hover:text-gray-600">
+                <i class="ri-close-line text-2xl"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('edit_product') }}" enctype="multipart/form-data" method="POST" class="space-y-4">
+            <input type="hidden" name="id" id="edit-id">
+
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">
+                    Изображение (Выберите новое для замены)
+                </label>
+                <input type="file" name="image" id="edit-image" accept="image/png, image/jpeg, image/gif"
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary bg-gray-50 text-sm">
+                <p class="text-xs text-gray-400 mt-1">Поддерживаются JPG, PNG, GIF. Если не выбрать, останется старое.
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">Описание</label>
+                <textarea name="description" id="edit-desc" rows="4"
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary"></textarea>
+            </div>
+
+
+            <input type="hidden" name="id" id="edit-id">
+
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">Название</label>
+                <input type="text" name="name" id="edit-name" required
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-description font-bold text-gray-400 uppercase mb-1">Цена (₽)</label>
+                    <input type="number" name="price" id="edit-price" required
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="block text-description font-bold text-gray-400 uppercase mb-1">Категория</label>
+                    <select name="category_id" id="edit-category"
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary">
+                        {% for cat in categories %}
+                        <option value="{{ cat.ID_Категории }}">{{ cat.Название_категории }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg shadow-blue-100 mt-4">
+                СОХРАНИТЬ ИЗМЕНЕНИЯ
+            </button>
+        </form>
+    </div>
+</div>
+
+<div id="productModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 w-[500px] shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-subheading font-bold text-gray-900">Новый товар</h2>
+            <button onclick="closeModal('productModal')" class="text-gray-400 hover:text-gray-600">
+                <i class="ri-close-line text-2xl"></i>
+            </button>
+        </div>
+
+        <form action="{{ url_for('add_product') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">Название</label>
+                <input type="text" name="name" required
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-description font-bold text-gray-400 uppercase mb-1">Цена (₽)</label>
+                    <input type="number" name="price" required
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="block text-description font-bold text-gray-400 uppercase mb-1">Категория</label>
+                    <select name="category" required
+                        class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary bg-white">
+                        {% for cat in categories %}
+                        <option value="{{ cat.ID_Категории }}">{{ cat.Название_категории }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">Описание</label>
+                <textarea name="description" rows="3"
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-description font-bold text-gray-400 uppercase mb-1">Изображение</label>
+                <input type="file" name="image" accept="image/*"
+                    class="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary bg-gray-50 text-sm">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-primary text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition mt-4">
+                СОЗДАТЬ ТОВАР
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .admin-tab {
+        padding: 20px 32px;
+        font-weight: 700;
+        color: #9CA3AF;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .admin-tab.active {
+        color: #3B82F6;
+        border-bottom-color: #3B82F6;
+    }
+</style>
+
+
+<script>
+    function switchTab(tab) {
+        // 1. Список всех ID контента вкладок
+        const contents = ['tab-products', 'tab-orders', 'tab-reports'];
+
+        // 2. Скрываем абсолютно все вкладки
+        contents.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.classList.add('hidden');
+            }
+        });
+
+        // 3. Убираем класс 'active' со всех кнопок
+        document.querySelectorAll('.admin-tab').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 4. Показываем нужную вкладку
+        const activeContent = document.getElementById('tab-' + tab);
+        if (activeContent) {
+            activeContent.classList.remove('hidden');
+        }
+
+        // 5. Делаем нажатую кнопку активной
+        const activeBtn = document.getElementById('tab-' + tab + '-btn');
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+
+    function openEditModal(product) {
+        console.log("Данные продукта:", product);
+
+        document.getElementById('edit-id').value = product.ID_Товара;
+        document.getElementById('edit-name').value = product.Название;
+        document.getElementById('edit-price').value = Math.round(product.Цена);
+        document.getElementById('edit-category').value = product.ID_Категории;
+        document.getElementById('edit-desc').value = product.Описание;
+
+        // НОВОЕ: Очищаем поле выбора файла при открытии окна
+        document.getElementById('edit-image').value = '';
+
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    // Функция закрытия (универсальная)
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    // Функция для открытия любого модального окна
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    }
+</script>
+{% endblock %}

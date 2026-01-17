@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Корзина | SoftKey{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen">
+    <div class="w-[1196px] mx-auto pt-[64px] pb-20">
+
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <nav class="text-sm text-gray-400 mb-6">
+                    <a href="/" class="hover:text-primary">Главная</a> /
+                    <span class="text-gray-900 font-medium">Корзина</span>
+                </nav>
+                <div class="flex items-center gap-3">
+                    <i class="ri-shopping-cart-2-fill text-primary text-4xl"></i>
+                    <h1 class="text-[40px] font-bold text-gray-900 leading-none">Корзина покупок</h1>
+                </div>
+            </div>
+            <a href="/" class="text-primary font-medium flex items-center gap-2 hover:underline mb-2">
+                <i class="ri-arrow-left-line"></i> Продолжить покупки
+            </a>
+        </div>
+
+        <div class="flex gap-[22px] items-start">
+
+            <div class="w-[710px] flex flex-col gap-5">
+                {% if items %}
+                <div
+                    class="grid grid-cols-[1fr_100px_120px_100px_40px] px-6 text-description text-gray-400 font-bold uppercase">
+                    <span>Товар</span>
+                    <span class="text-center">Цена</span>
+                    <span class="text-center">Количество</span>
+                    <span class="text-right">Сумма</span>
+                    <span></span>
+                </div>
+
+                {% for item in items %}
+                <div
+                    class="bg-white border border-gray-100 rounded-[12px] p-6 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-6">
+                        <div
+                            class="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center text-primary text-3xl">
+                            <div
+                                class="w-16 h-16 bg-gray-50 rounded-lg flex-shrink-0 overflow-hidden border border-gray-100">
+                                {% if item.Изображение %}
+                                <img src="{{ url_for('static', filename='images/' + item.Изображение) }}"
+                                    class="w-full h-full object-cover">
+                                {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                    <i class="ri-image-line"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 grid grid-cols-[1fr_100px_120px_100px_40px] items-center">
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900 leading-tight mb-1">{{ item.Название }}
+                                </h3>
+                                <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                    <span class="text-[12px] text-gray-400 flex items-center gap-1">
+                                        <i class="ri-download-cloud-line"></i> Мгновенная доставка
+                                    </span>
+                                    <span class="text-[12px] text-gray-400 flex items-center gap-1">
+                                        <i class="ri-shield-check-line"></i> Официальная лицензия
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-center font-bold text-gray-900">
+                                {{ item.Цена|round|int }} ₽
+                            </div>
+
+                            <div class="flex justify-center">
+                                <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                                    <a href="/cart/update/{{ item.ID_Товара }}/minus"
+                                        class="w-8 h-8 flex items-center justify-center hover:text-primary">-</a>
+                                    <span class="w-8 h-8 flex items-center justify-center font-bold text-sm">{{
+                                        item.Количество }}</span>
+                                    <a href="/cart/update/{{ item.ID_Товара }}/plus"
+                                        class="w-8 h-8 flex items-center justify-center hover:text-primary">+</a>
+                                </div>
+                            </div>
+
+                            <div class="text-right font-bold text-primary">
+                                {{ (item.Цена * item.Количество)|round|int }} ₽
+                            </div>
+
+                            <div class="text-right">
+                                <a href="/cart/remove/{{ item.ID_Товара }}"
+                                    class="text-gray-300 hover:text-red-500 transition ml-4">
+                                    <i class="ri-delete-bin-line text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="bg-white border border-gray-100 rounded-[12px] p-20 shadow-sm text-center">
+                    <i class="ri-shopping-cart-2-line text-[64px] text-gray-200 mb-4 block"></i>
+                    <h2 class="text-subheading font-bold text-gray-900">Ваша корзина пуста</h2>
+                    <a href="/"
+                        class="inline-block mt-8 bg-primary text-white px-10 py-3 rounded-md font-bold hover:bg-blue-600 transition">В
+                        КАТАЛОГ</a>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if items %}
+            <aside class="w-[464px] sticky top-[40px]">
+                <div class="bg-white border border-gray-100 rounded-[12px] p-8 shadow-sm">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-8">Сумма заказа</h3>
+
+                    <div class="space-y-4 mb-8">
+                        <div class="flex justify-between text-base text-gray-500">
+                            <span>Товары ({{ items|length }} шт.)</span>
+                            <span class="font-medium text-gray-900">{{ total_price|round|int }} ₽</span>
+                        </div>
+                        <div class="flex justify-between text-base text-gray-500">
+                            <span>Способ получения</span>
+                            <span class="font-medium text-gray-900">Email</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-6 mb-8">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-primary">Итого к оплате</span>
+                            <span class="text-3xl font-bold text-primary">{{ total_price|round|int }} ₽</span>
+                        </div>
+                    </div>
+
+                    <form action="/checkout" method="POST">
+                        <button type="submit"
+                            class="w-full bg-[#52b788] text-white py-4 rounded-lg font-bold text-lg hover:bg-[#40a076] transition shadow-lg shadow-green-100 flex items-center justify-center gap-2">
+                            <i class="ri-lock-line"></i> ПЕРЕЙТИ К ОФОРМЛЕНИЮ
+                        </button>
+                    </form>
+
+                    <div class="mt-6 space-y-3">
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="ri-checkbox-circle-fill text-green-500"></i> Безопасная оплата
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="ri-checkbox-circle-fill text-green-500"></i> Гарантия возврата 14 дней
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="ri-checkbox-circle-fill text-green-500"></i> Техподдержка 24/7
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

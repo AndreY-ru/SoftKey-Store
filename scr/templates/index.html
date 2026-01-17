@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Главная | SoftKey Store{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center pt-[48px] pb-20">
+
+    <div class="mb-[20px] text-center">
+        <h1 class="text-heading font-bold text-gray-900 mb-2">Найдите свое идеальное ПО</h1>
+        
+    </div>
+
+    <form action="/" method="GET" class="w-[1196px] h-[32px] flex gap-0 shadow-sm">
+        <input type="text" name="search" value="{{ request.args.get('search', '') }}"
+            placeholder="Поиск по названию программы..."
+            class="flex-1 px-4 border border-gray-300 rounded-l-md outline-none focus:border-primary text-base">
+        <button type="submit"
+            class="bg-primary text-white px-8 rounded-r-md hover:bg-blue-600 transition font-bold text-base">
+            НАЙТИ
+        </button>
+    </form>
+
+    <div class="h-[64px] flex items-center w-[1196px]">
+        <p class="text-description uppercase tracking-widest font-bold text-gray-400">Настройте фильтры для точного
+            выбора</p>
+    </div>
+
+    <form id="filterForm" action="/" method="GET" class="w-[1196px] flex gap-4">
+        <select name="sort_price" onchange="this.form.submit()"
+            class="px-4 py-2 border rounded-md text-base bg-white cursor-pointer">
+            <option value="">Цена: любая</option>
+            <option value="asc" {% if request.args.get('sort_price')=='asc' %}selected{% endif %}>Сначала дешевле
+            </option>
+            <option value="desc" {% if request.args.get('sort_price')=='desc' %}selected{% endif %}>Сначала дороже
+            </option>
+        </select>
+
+        <select name="category" onchange="this.form.submit()"
+            class="px-4 py-2 border rounded-md text-base bg-white cursor-pointer">
+            <option value="all">Все категории</option>
+            {% for cat in categories %}
+            <option value="{{ cat.ID_Категории }}" {% if request.args.get('category')|string==cat.ID_Категории|string
+                %}selected{% endif %}>
+                {{ cat.Название_категории }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="sort_date" onchange="this.form.submit()"
+            class="px-4 py-2 border rounded-md text-base bg-white cursor-pointer">
+            <option value="">По дате добавления</option>
+            <option value="new" {% if request.args.get('sort_date')=='new' %}selected{% endif %}>Сначала новые</option>
+            <option value="old" {% if request.args.get('sort_date')=='old' %}selected{% endif %}>Сначала старые</option>
+        </select>
+    </form>
+
+    <div class="h-[96px] flex items-center w-[1196px] mb-[-8px]">
+        <h2 class="text-subheading font-bold text-gray-800">
+            {% if products %} Найдено товаров: {{ products|length }} {% else %} Ничего не найдено {% endif %}
+        </h2>
+    </div>
+
+    <div class="grid grid-cols-3 gap-[25px] w-[1196px]">
+        {% for prod in products %}
+        <div
+            class="w-[382px] h-[256px] relative group bg-white rounded-[8px] overflow-hidden border border-gray-300 shadow-md hover:shadow-lg transition-shadow">
+
+            <div class="w-full h-[110px] bg-gray-100 overflow-hidden">
+                {% if prod.Изображение %}
+                <img src="{{ url_for('static', filename='images/' + prod.Изображение) }}" alt="{{ prod.Название }}"
+                    class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-blue-50 text-blue-200">
+                    <i class="ri-image-2-fill text-[40px]"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <div
+                class="absolute top-[80px] left-0 w-full h-[176px] bg-white rounded-t-[12px] p-[20px] flex flex-col justify-between shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-description font-bold text-primary uppercase">{{ prod.Название_категории
+                            }}</span>
+                        <span class="text-subheading font-bold text-secondary">{{ prod.Цена|round|int }} ₽</span>
+                    </div>
+                    <h3 class="text-base font-bold text-gray-900 truncate">{{ prod.Название }}</h3>
+                    <p class="text-description text-gray-500 line-clamp-2 mt-1">
+                        {{ prod.Описание }}
+                    </p>
+                </div>
+
+                <a href="/product/{{ prod.ID_Товара }}"
+                    class="w-full h-[32px] bg-gray-100 text-gray-800 rounded flex items-center justify-center text-base font-bold hover:bg-primary hover:text-white transition uppercase tracking-wider">
+                    Подробнее
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
